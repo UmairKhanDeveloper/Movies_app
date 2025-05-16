@@ -35,6 +35,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -72,13 +73,15 @@ fun Login_Signup(navController: NavController) {
             },
             fontWeight = FontWeight.SemiBold,
             color = Color(0xFF92929D),
-            fontSize = 14.sp
+            fontSize = 14.sp,textAlign = TextAlign.Center
         )
 
 
         Spacer(modifier = Modifier.height(50.dp))
         Button(
-            onClick = {},
+            onClick = {
+                      navController.navigate(Screen.SignUpScreen.route)
+            },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF00CFE8),
                 contentColor = Color.White
@@ -86,7 +89,7 @@ fun Login_Signup(navController: NavController) {
             shape = RoundedCornerShape(50),
             modifier = Modifier
                 .height(56.dp)
-                .width(327.dp)
+                .width(300.dp)
         ) {
             Text(text = "Sign Up", fontSize = 16.sp)
         }

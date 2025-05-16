@@ -26,6 +26,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -73,7 +74,7 @@ fun Onboarding2(navController: NavController) {
                 Text(
                     text = "Offers ad-free viewing of\n high quality",
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.SemiBold,textAlign = TextAlign.Center,
                     color = Color.White
                 )
                 Spacer(modifier = Modifier.height(30.dp))
@@ -81,7 +82,7 @@ fun Onboarding2(navController: NavController) {
                     text = "Semper in cursus magna et eu\n varius nunc adipiscing. Elementum\n justo, laoreet id sem semper\n parturient. ",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0XFF92929D)
+                    color = Color(0XFF92929D),textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(30.dp))
                 Row(

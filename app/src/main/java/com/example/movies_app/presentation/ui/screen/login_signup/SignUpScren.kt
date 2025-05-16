@@ -29,7 +29,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -49,11 +48,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.movies_app.R
+import com.example.movies_app.presentation.ui.navgation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun LoginScreen(navController: NavController) {
+fun SignUpScreen(navController: NavController) {
+    var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -98,26 +99,26 @@ fun LoginScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Hi, Tiffany",
+                text = "Let’s get started",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Welcome back! Please enter \nyour details.",
+                text = "The latest movies and series are here",
                 fontSize = 12.sp,
                 color = Color(0xFFEBEBEF),
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(70.dp))
-
-
-            StyledEmailTextField(email = email, onEmailChange = { email = it })
+            StyledNameTextField2(username = username, onNameChange={username=it})
+            Spacer(modifier = Modifier.height(20.dp))
+            StyledEmailTextField2(email = email, onEmailChange = { email = it })
             Spacer(modifier = Modifier.height(20.dp))
 
-            StyledPasswordTextField(
+            StyledPasswordTextField2(
                 password = password,
                 onPasswordChange = { password = it },
                 passwordVisible = passwordVisible,
@@ -162,7 +163,7 @@ fun LoginScreen(navController: NavController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StyledPasswordTextField(
+fun StyledPasswordTextField2(
     password: String,
     onPasswordChange: (String) -> Unit,
     passwordVisible: Boolean,
@@ -211,7 +212,7 @@ fun StyledPasswordTextField(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StyledEmailTextField(
+fun StyledEmailTextField2(
     email: String,
     onEmailChange: (String) -> Unit
 ) {
@@ -247,3 +248,40 @@ fun StyledEmailTextField(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StyledNameTextField2(
+    username: String,
+    onNameChange: (String) -> Unit
+) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Text(
+            text = "Username",
+            color = Color.LightGray,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
+        )
+
+        TextField(
+            value = username,
+            onValueChange = onNameChange,
+            placeholder = {
+                Text(text = "enter your name", color = Color.Gray)
+            },
+            shape = RoundedCornerShape(50),
+            colors = TextFieldDefaults.textFieldColors(
+                containerColor = Color(0xFF1F1D2B),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                cursorColor = Color.White,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .border(BorderStroke(1.dp, Color(0XFF92929D)), shape = RoundedCornerShape(50))
+        )
+
+    }
+}

@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import com.example.movies_app.presentation.ui.screen.home.HomeScreen
 import com.example.movies_app.presentation.ui.screen.login_signup.LoginScreen
 import com.example.movies_app.presentation.ui.screen.login_signup.Login_Signup
+import com.example.movies_app.presentation.ui.screen.login_signup.SignUpScreen
 import com.example.movies_app.presentation.ui.screen.onboarding.Onboarding1
 import com.example.movies_app.presentation.ui.screen.onboarding.Onboarding2
 import com.example.movies_app.presentation.ui.screen.onboarding.Onboarding3
@@ -24,6 +25,7 @@ fun Navigation(navController: NavHostController) {
         composable(Screen.Onboarding3.route){ Onboarding3(navController) }
         composable(Screen.Login_Signup.route){ Login_Signup(navController) }
         composable(Screen.LoginScreen.route){ LoginScreen(navController) }
+        composable(Screen.SignUpScreen.route){ SignUpScreen(navController) }
         composable(Screen.HomeScreen.route){ HomeScreen(navController) }
 
 
@@ -41,6 +43,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     object Onboarding3 : Screen("Onboarding3", "Onboarding3", icon = Icons.Default.Settings)
     object Login_Signup : Screen("Login_Signup", "Login_Signup", icon = Icons.Default.Settings)
     object LoginScreen : Screen("LoginScreen", "LoginScreen", icon = Icons.Default.Settings)
+    object SignUpScreen : Screen("SignUpScreen", "SignUpScreen", icon = Icons.Default.Settings)
     object HomeScreen : Screen("Onboarding", "Onboarding", icon = Icons.Default.Settings)
 
 }
