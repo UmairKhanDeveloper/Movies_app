@@ -15,16 +15,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -40,10 +45,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -71,7 +79,8 @@ fun SignUpScreen(navController: NavController) {
             },
             navigationIcon = {
                 Box(
-                    modifier = Modifier.clickable { navController.popBackStack() }
+                    modifier = Modifier
+                        .clickable { navController.popBackStack() }
                         .padding(start = 10.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .size(32.dp)
@@ -113,7 +122,7 @@ fun SignUpScreen(navController: NavController) {
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(70.dp))
-            StyledNameTextField2(username = username, onNameChange={username=it})
+            StyledNameTextField2(username = username, onNameChange = { username = it })
             Spacer(modifier = Modifier.height(20.dp))
             StyledEmailTextField2(email = email, onEmailChange = { email = it })
             Spacer(modifier = Modifier.height(20.dp))
@@ -128,19 +137,16 @@ fun SignUpScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(8.dp))
 
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Text(
-                    text = "Forgot Password?",
-                    color = Color(0xFF00D1FF),
-                    fontSize = 12.sp,
-                    modifier = Modifier.clickable {
+            var checked by remember { mutableStateOf(false) }
 
-                    }
-                )
-            }
+            TermsAndPrivacyCheckbox(
+                checked = checked,
+                onCheckedChange = { checked = it },
+                onTermsClick = { },
+                onPrivacyClick = { }
+            )
+
+
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -197,7 +203,7 @@ fun StyledPasswordTextField2(
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = Color(0xFF1F1D2B),
                 focusedTextColor = Color.White,
-                unfocusedTextColor =Color.White ,
+                unfocusedTextColor = Color.White,
                 cursorColor = Color.White,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent
@@ -283,5 +289,62 @@ fun StyledNameTextField2(
                 .border(BorderStroke(1.dp, Color(0XFF92929D)), shape = RoundedCornerShape(50))
         )
 
+    }
+}
+
+@Composable
+fun TermsAndPrivacyCheckbox(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    onTermsClick: () -> Unit,
+    onPrivacyClick: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(8.dp)
+    ) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = CheckboxDefaults.colors(
+                checkmarkColor = Color.White,
+                checkedColor = Color(0xFF00D1FF)
+            )
+        )
+
+        Spacer(modifier = Modifier.width(4.dp))
+
+        val annotatedString = buildAnnotatedString {
+            append("I agree to the ")
+
+            pushStringAnnotation(tag = "TERMS", annotation = "terms")
+            withStyle(style = SpanStyle(color = Color.Cyan)) {
+                append("Terms and Services")
+            }
+            pop()
+
+            append(" and ")
+
+            pushStringAnnotation(tag = "PRIVACY", annotation = "privacy")
+            withStyle(style = SpanStyle(color = Color.Cyan)) {
+                append("Privacy Policy")
+            }
+            pop()
+        }
+
+        ClickableText(
+            text = annotatedString,
+            onClick = { offset ->
+                annotatedString.getStringAnnotations(tag = "TERMS", start = offset, end = offset)
+                    .firstOrNull()?.let {
+                        onTermsClick()
+                    }
+                annotatedString.getStringAnnotations(tag = "PRIVACY", start = offset, end = offset)
+                    .firstOrNull()?.let {
+                        onPrivacyClick()
+                    }
+            },
+            style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray)
+        )
     }
 }

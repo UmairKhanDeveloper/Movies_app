@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.movies_app.R
+import com.example.movies_app.presentation.ui.navgation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -70,7 +71,8 @@ fun LoginScreen(navController: NavController) {
             },
             navigationIcon = {
                 Box(
-                    modifier = Modifier.clickable { navController.popBackStack() }
+                    modifier = Modifier
+                        .clickable { navController.popBackStack() }
                         .padding(start = 10.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .size(32.dp)
@@ -136,7 +138,7 @@ fun LoginScreen(navController: NavController) {
                     color = Color(0xFF00D1FF),
                     fontSize = 12.sp,
                     modifier = Modifier.clickable {
-
+                        navController.navigate(Screen.ResetPassword.route)
                     }
                 )
             }
@@ -196,7 +198,7 @@ fun StyledPasswordTextField(
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = Color(0xFF1F1D2B),
                 focusedTextColor = Color.White,
-                unfocusedTextColor =Color.White ,
+                unfocusedTextColor = Color.White,
                 cursorColor = Color.White,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent
