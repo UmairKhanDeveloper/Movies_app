@@ -1,4 +1,4 @@
-package com.example.movies_app.presentation.ui.screen.login_signup.Sign_Up
+package com.example.movies_app.presentation.ui.screen.login_signup.Createnewpassword
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
@@ -15,21 +15,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -45,26 +40,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.movies_app.R
+import com.example.movies_app.presentation.ui.navgation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun SignUpScreen(navController: NavController) {
-    var username by remember { mutableStateOf("") }
+fun CreateNewPassword(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var password2 by remember { mutableStateOf("") }
+    var passwordVisible2 by remember { mutableStateOf(false) }
 
     Scaffold(topBar = {
         CenterAlignedTopAppBar(
@@ -103,56 +97,45 @@ fun SignUpScreen(navController: NavController) {
                 .fillMaxSize()
                 .background(Color(0xFF1F1D2B))
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Let’s get started",
+                text = "Create new password",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "The latest movies and series are here",
-                fontSize = 12.sp,
-                color = Color(0xFFEBEBEF),
+                text = "Enter your new password",
+                fontSize = 14.sp,
+                color = Color(0xFF92929D),
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(70.dp))
-            StyledNameTextField2(username = username, onNameChange = { username = it })
-            Spacer(modifier = Modifier.height(20.dp))
-            StyledEmailTextField2(email = email, onEmailChange = { email = it })
+
+
+            StyledEmailTextFieldStyledPasswordTextFieldCreateNewPassword(password = password,
+                onPasswordChange = { password2 = it },
+                passwordVisible = passwordVisible2,
+                onVisibilityChange = { passwordVisible2 = !passwordVisible2 })
             Spacer(modifier = Modifier.height(20.dp))
 
-            StyledPasswordTextField2(
+            StyledPasswordTextFieldCreateNewPassword(
                 password = password,
                 onPasswordChange = { password = it },
                 passwordVisible = passwordVisible,
                 onVisibilityChange = { passwordVisible = !passwordVisible }
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-
-            var checked by remember { mutableStateOf(false) }
-
-            TermsAndPrivacyCheckbox(
-                checked = checked,
-                onCheckedChange = { checked = it },
-                onTermsClick = { },
-                onPrivacyClick = { }
-            )
-
-
-
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(35.dp))
 
 
             Button(
                 onClick = {
-
+                    navController.navigate(Screen.HomeScreen.route)
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00D1FF)),
                 shape = RoundedCornerShape(50),
@@ -168,7 +151,7 @@ fun SignUpScreen(navController: NavController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StyledPasswordTextField2(
+fun StyledPasswordTextFieldCreateNewPassword(
     password: String,
     onPasswordChange: (String) -> Unit,
     passwordVisible: Boolean,
@@ -176,7 +159,7 @@ fun StyledPasswordTextField2(
 ) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
-            text = "Password",
+            text = "New Password",
             color = Color.LightGray,
             fontSize = 12.sp,
             modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
@@ -217,23 +200,35 @@ fun StyledPasswordTextField2(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StyledEmailTextField2(
-    email: String,
-    onEmailChange: (String) -> Unit
+fun StyledEmailTextFieldStyledPasswordTextFieldCreateNewPassword(
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    passwordVisible: Boolean,
+    onVisibilityChange: () -> Unit
 ) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
-            text = "Email Address",
+            text = "Confirm Password",
             color = Color.LightGray,
             fontSize = 12.sp,
             modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
         )
 
         TextField(
-            value = email,
-            onValueChange = onEmailChange,
+            value = password,
+            onValueChange = onPasswordChange,
             placeholder = {
-                Text(text = "Enter your email", color = Color.Gray)
+                Text(text = "Enter your password", color = Color.Gray)
+            },
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                IconButton(onClick = onVisibilityChange) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                        contentDescription = "Toggle Password Visibility",
+                        tint = Color.LightGray
+                    )
+                }
             },
             shape = RoundedCornerShape(50),
             colors = TextFieldDefaults.textFieldColors(
@@ -253,97 +248,3 @@ fun StyledEmailTextField2(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun StyledNameTextField2(
-    username: String,
-    onNameChange: (String) -> Unit
-) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Text(
-            text = "Username",
-            color = Color.LightGray,
-            fontSize = 12.sp,
-            modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
-        )
-
-        TextField(
-            value = username,
-            onValueChange = onNameChange,
-            placeholder = {
-                Text(text = "Enter your name", color = Color.Gray)
-            },
-            shape = RoundedCornerShape(50),
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = Color(0xFF1F1D2B),
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                cursorColor = Color.White,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .border(BorderStroke(1.dp, Color(0XFF92929D)), shape = RoundedCornerShape(50))
-        )
-
-    }
-}
-
-@Composable
-fun TermsAndPrivacyCheckbox(
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    onTermsClick: () -> Unit,
-    onPrivacyClick: () -> Unit
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(8.dp)
-    ) {
-        Checkbox(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = CheckboxDefaults.colors(
-                checkmarkColor = Color.White,
-                checkedColor = Color(0xFF00D1FF)
-            )
-        )
-
-        Spacer(modifier = Modifier.width(4.dp))
-
-        val annotatedString = buildAnnotatedString {
-            append("I agree to the ")
-
-            pushStringAnnotation(tag = "TERMS", annotation = "terms")
-            withStyle(style = SpanStyle(color = Color.Cyan)) {
-                append("Terms and Services")
-            }
-            pop()
-
-            append(" and ")
-
-            pushStringAnnotation(tag = "PRIVACY", annotation = "privacy")
-            withStyle(style = SpanStyle(color = Color.Cyan)) {
-                append("Privacy Policy")
-            }
-            pop()
-        }
-
-        ClickableText(
-            text = annotatedString,
-            onClick = { offset ->
-                annotatedString.getStringAnnotations(tag = "TERMS", start = offset, end = offset)
-                    .firstOrNull()?.let {
-                        onTermsClick()
-                    }
-                annotatedString.getStringAnnotations(tag = "PRIVACY", start = offset, end = offset)
-                    .firstOrNull()?.let {
-                        onPrivacyClick()
-                    }
-            },
-            style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray)
-        )
-    }
-}

@@ -41,7 +41,7 @@ fun SplashScreen(navController: NavHostController) {
         delay(2000)
 
         if (PreferencesHelper.isOnboardingCompleted(context)) {
-            navController.navigate(Screen.Login_Signup.route) {
+            navController.navigate(Screen.HomeScreen.route) {
                 popUpTo(Screen.SplashScreen.route) { inclusive = true }
             }
         } else {

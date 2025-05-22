@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+
 }
 
 android {
@@ -69,4 +70,8 @@ dependencies {
 
     implementation("androidx.navigation:navigation-compose:2.6.0")
     implementation ("androidx.compose.material:material-icons-extended:1.6.1")
+
+
+    implementation("com.google.accompanist:accompanist-pager:0.34.0")
+
 }
