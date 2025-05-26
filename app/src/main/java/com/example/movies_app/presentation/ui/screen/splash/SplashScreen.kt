@@ -40,13 +40,21 @@ fun SplashScreen(navController: NavHostController) {
         )
         delay(2000)
 
-        if (PreferencesHelper.isOnboardingCompleted(context)) {
-            navController.navigate(Screen.HomeScreen.route) {
-                popUpTo(Screen.SplashScreen.route) { inclusive = true }
+        when {
+            !PreferencesHelper.isOnboardingCompleted(context) -> {
+                navController.navigate(Screen.Onboarding1.route) {
+                    popUpTo(Screen.SplashScreen.route) { inclusive = true }
+                }
             }
-        } else {
-            navController.navigate(Screen.Onboarding1.route) {
-                popUpTo(Screen.SplashScreen.route) { inclusive = true }
+            PreferencesHelper.isUserLoggedIn(context) -> {
+                navController.navigate(Screen.HomeScreen.route) {
+                    popUpTo(Screen.SplashScreen.route) { inclusive = true }
+                }
+            }
+            else -> {
+                navController.navigate(Screen.Login_Signup.route) {
+                    popUpTo(Screen.SplashScreen.route) { inclusive = true }
+                }
             }
         }
     }
@@ -69,18 +77,28 @@ fun SplashScreen(navController: NavHostController) {
     }
 }
 
-
 object PreferencesHelper {
     private const val PREF_NAME = "app_prefs"
     private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
+    private const val KEY_USER_LOGGED_IN = "user_logged_in"
 
     fun setOnboardingCompleted(context: Context, isCompleted: Boolean) {
-        val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
         prefs.edit().putBoolean(KEY_ONBOARDING_COMPLETED, isCompleted).apply()
     }
 
     fun isOnboardingCompleted(context: Context): Boolean {
-        val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
         return prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)
+    }
+
+    fun setUserLoggedIn(context: Context, isLoggedIn: Boolean) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(KEY_USER_LOGGED_IN, isLoggedIn).apply()
+    }
+
+    fun isUserLoggedIn(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(KEY_USER_LOGGED_IN, false)
     }
 }

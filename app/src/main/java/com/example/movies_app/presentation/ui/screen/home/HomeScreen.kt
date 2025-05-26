@@ -25,10 +25,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +37,8 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,32 +48,70 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.lerp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.movies_app.R
-import com.google.accompanist.pager.ExperimentalPagerApi
+import com.example.movies_app.data.remote.api.MoviesApiItem
+import com.example.movies_app.data.reposotory.Repository
+import com.example.movies_app.domian.model.MainViewModel
+import com.example.movies_app.firebase.ResultState
+import com.example.movies_app.realtime_database.RealTimeDbRepository
+import com.example.movies_app.realtime_database.RealTimeViewModel
+import com.google.firebase.database.FirebaseDatabase
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeScreen(navController: NavController) {
+    val context = LocalContext.current
+    val databaseReference = FirebaseDatabase.getInstance().reference.child("your_node")
+    val repository = remember { RealTimeDbRepository(databaseReference, context) }
+    val viewModel = remember { RealTimeViewModel(repository) }
+    val state = viewModel.res.value
     var textField by remember { mutableStateOf("") }
+    val repository1 = remember { Repository() }
+    val viewModel1 = remember { MainViewModel(repository1) }
+    val state1 by viewModel1.allMovies.collectAsState()
+    var allWeatherData by remember { mutableStateOf<List<MoviesApiItem>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(false) }
+
+    when (state1) {
+        is ResultState.Error -> {
+            isLoading = false
+            val error = (state1 as ResultState.Error).error
+            Text(text = "$error")
+        }
+
+        ResultState.Loading -> {
+            isLoading = true
+        }
+
+        is ResultState.Success -> {
+            isLoading = false
+            val success = (state1 as ResultState.Success).response
+            allWeatherData = success
+        }
+    }
+
+
     Scaffold(topBar = {
         TopAppBar(title = {
             Column() {
-                Text(
-                    text = "Hello, Smith",
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White,
-                    fontSize = 16.sp
-                )
+                state.item.forEach {
+                    Text(
+                        text = "Hello, ${it.items.userName}",
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White,
+                        fontSize = 16.sp
+                    )
+                }
                 Text(
                     text = "Let’s stream your favorite movie",
                     fontWeight = FontWeight.SemiBold,
@@ -102,13 +140,23 @@ fun HomeScreen(navController: NavController) {
                 )
             }
         }, navigationIcon = {
-            Image(
-                painter = painterResource(id = R.drawable.image),
-                contentDescription = "Back",
+            Box(
                 modifier = Modifier
+                    .padding(end = 10.dp)
+                    .clickable { navController.popBackStack() }
                     .padding(start = 10.dp)
-                    .size(40.dp)
-            )
+                    .clip(RoundedCornerShape(10.dp))
+                    .size(32.dp)
+                    .background(Color(0xFF252836)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = "Back",
+                    tint = Color.Red,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }, colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0XFF1F1D2B)))
     }) {
         Column(
@@ -181,15 +229,26 @@ fun HomeScreen(navController: NavController) {
     }
 }
 
+data class Movie(val imageUrl: String, val title: String)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MovieCarousel() {
     val movies = listOf(
-        R.drawable.image5,
-        R.drawable.image5,
-        R.drawable.image5
+        Movie(
+            imageUrl = "https://i.pinimg.com/736x/e4/92/19/e49219defdb308bef411f29941275853.jpg",
+            title = "Black Panther: Wakanda Forever"
+        ),
+        Movie(
+            imageUrl = "https://mir-s3-cdn-cf.behance.net/projects/404/e39120182258869.Y3JvcCwyMTAwLDE2NDIsMCwxNTU.jpg",
+            title = "Mission: Impossible – Dead Reckoning"
+        ),
+        Movie(
+            imageUrl = "https://w0.peakpx.com/wallpaper/888/100/HD-wallpaper-the-foreigner-2017-jackie-chan-pierce-brosnan-poster-new-movies-action-movie-thumbnail.jpg",
+            title = "The Foreigner"
+        )
     )
+
 
     val pagerState = rememberPagerState(
         initialPage = 1,
@@ -205,11 +264,13 @@ fun MovieCarousel() {
                 .fillMaxWidth()
                 .height(220.dp)
         ) { page ->
+            val movie = movies[page]
+
             Box(
                 modifier = Modifier.clip(RoundedCornerShape(10.dp))
             ) {
-                Image(
-                    painter = painterResource(id = movies[page]),
+                AsyncImage(
+                    model = movie.imageUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -229,7 +290,7 @@ fun MovieCarousel() {
                 )
 
                 Text(
-                    text = "Black Panther: Wakanda Forever",
+                    text = movie.title,
                     color = Color.White,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
@@ -333,6 +394,34 @@ fun CategoryScreen() {
 
 @Composable
 fun MostPopularSection() {
+    val repository1 = remember { Repository() }
+    val viewModel1 = remember { MainViewModel(repository1) }
+    val state1 by viewModel1.allMovies.collectAsState()
+    var allWeatherData by remember { mutableStateOf<List<MoviesApiItem>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel1.allMovies()
+    }
+
+    when (state1) {
+        is ResultState.Error -> {
+            isLoading = false
+            val error = (state1 as ResultState.Error).error
+            Text(text = "$error")
+        }
+
+        ResultState.Loading -> {
+            isLoading = true
+        }
+
+        is ResultState.Success -> {
+            isLoading = false
+            val success = (state1 as ResultState.Success).response
+            allWeatherData = success
+        }
+    }
+
     Column(modifier = Modifier.padding(10.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -349,28 +438,34 @@ fun MostPopularSection() {
 
         Spacer(modifier = Modifier.height(12.dp))
 
+
         LazyRow {
-            items(movieList) { movie ->
-                MovieCard(movie)
+            items(allWeatherData) { movie ->
+                MovieCard1(movie)
                 Spacer(modifier = Modifier.width(12.dp))
             }
         }
+
+
+
+
     }
 }
 
 @Composable
-fun MovieCard(movie: Movie) {
+fun MovieCard1(moviesApiItem: MoviesApiItem) {
     Box(
         modifier = Modifier
             .width(140.dp)
+            .height(250.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0XFF252836))
+            .background(Color(0xFF252836))
     ) {
         Column {
             Box {
-                Image(
-                    painter = painterResource(id = movie.imageRes),
-                    contentDescription = movie.title,
+                AsyncImage(
+                    model = moviesApiItem.image,
+                    contentDescription = moviesApiItem.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .height(180.dp)
@@ -379,10 +474,10 @@ fun MovieCard(movie: Movie) {
                 )
                 Row(
                     modifier = Modifier
-                        .height(40.dp)
-                        .width(55.dp)
                         .padding(6.dp)
                         .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
+                        .height(24.dp)
+                        .padding(horizontal = 6.dp)
                         .align(Alignment.TopEnd),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -393,29 +488,38 @@ fun MovieCard(movie: Movie) {
                         modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "${movie.rating}", color = Color.White, fontSize = 12.sp)
+                    Text(
+                        text = "${moviesApiItem.rating}",
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
                 }
             }
 
-            Column(modifier = Modifier.padding(8.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
                 Text(
-                    movie.title,
+                    text = moviesApiItem.title,
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(movie.category, color = Color.LightGray, fontSize = 12.sp)
+                Text(
+                    text = moviesApiItem.genre.toString(),
+                    color = Color.LightGray,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
 }
 
-data class Movie(val title: String, val category: String, val rating: Double, val imageRes: Int)
 
 
-val movieList = listOf(
-    Movie("Spider-Man No Way Home", "Action", 4.5, R.drawable.bg1),
-    Movie("Life of PI", "Action", 4.5, R.drawable.bg2),
-    Movie("Riverdale", "Action", 4.5, R.drawable.bg3)
-)

@@ -2,15 +2,7 @@ package com.example.movies_app.presentation.ui.navgation
 
 import android.annotation.SuppressLint
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -23,27 +15,23 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.movies_app.R
 import com.example.movies_app.presentation.ui.screen.download.DownloadScreen
 import com.example.movies_app.presentation.ui.screen.home.HomeScreen
-import com.example.movies_app.presentation.ui.screen.login_signup.Createnewpassword.CreateNewPassword
 import com.example.movies_app.presentation.ui.screen.login_signup.Login.LoginScreen
 import com.example.movies_app.presentation.ui.screen.login_signup.Login_Signup.Login_Signup
-import com.example.movies_app.presentation.ui.screen.login_signup.ResetPassword.ResetPassword
 import com.example.movies_app.presentation.ui.screen.login_signup.Sign_Up.SignUpScreen
-import com.example.movies_app.presentation.ui.screen.login_signup.Verification.Verification
 import com.example.movies_app.presentation.ui.screen.onboarding.Onboarding1
 import com.example.movies_app.presentation.ui.screen.onboarding.Onboarding2
 import com.example.movies_app.presentation.ui.screen.onboarding.Onboarding3
@@ -52,7 +40,7 @@ import com.example.movies_app.presentation.ui.screen.search.SearchScreen
 import com.example.movies_app.presentation.ui.screen.splash.SplashScreen
 
 @Composable
-fun Navigation(navController: NavHostController) {
+fun Navigation(navController: NavHostController,) {
     NavHost(navController = navController, startDestination =Screen.SplashScreen.route) {
         composable(Screen.SplashScreen.route){ SplashScreen(navController)}
         composable(Screen.Onboarding1.route){ Onboarding1(navController)}
@@ -61,9 +49,6 @@ fun Navigation(navController: NavHostController) {
         composable(Screen.Login_Signup.route){ Login_Signup(navController) }
         composable(Screen.LoginScreen.route){ LoginScreen(navController) }
         composable(Screen.SignUpScreen.route){ SignUpScreen(navController) }
-        composable(Screen.ResetPassword.route){ ResetPassword(navController) }
-        composable(Screen.Verification.route){ Verification(navController) }
-        composable(Screen.CreateNewPassword.route){ CreateNewPassword(navController) }
         composable(Screen.HomeScreen.route){ HomeScreen(navController) }
         composable(Screen.SearchScreen.route){ SearchScreen(navController) }
         composable(Screen.DownloadScreen.route){ DownloadScreen(navController) }
@@ -86,9 +71,6 @@ sealed class Screen(val route: String, val title: String, @DrawableRes val icon:
     object Login_Signup : Screen("Login_Signup", "Login_Signup", R.drawable.ic_splash)
     object LoginScreen : Screen("LoginScreen", "LoginScreen", R.drawable.ic_splash)
     object SignUpScreen : Screen("SignUpScreen", "SignUpScreen", R.drawable.ic_splash)
-    object ResetPassword : Screen("ResetPassword", "ResetPassword", R.drawable.ic_splash)
-    object Verification : Screen("Verification", "Verification", R.drawable.ic_splash)
-    object CreateNewPassword : Screen("CreateNewPassword", "CreateNewPassword", R.drawable.ic_splash)
     object HomeScreen : Screen("HomeScreen", "Home", R.drawable.ic_home)
     object SearchScreen : Screen("SearchScreen", "Search", R.drawable.ic_search)
     object DownloadScreen : Screen("DownloadScreen", "Download", R.drawable.ic_download)
@@ -183,9 +165,6 @@ fun NavEntry() {
         currentRoute.contains(Screen.Login_Signup.route) -> false
         currentRoute.contains(Screen.LoginScreen.route) -> false
         currentRoute.contains(Screen.SignUpScreen.route) -> false
-        currentRoute.contains(Screen.ResetPassword.route) -> false
-        currentRoute.contains(Screen.Verification.route) -> false
-        currentRoute.contains(Screen.CreateNewPassword.route) -> false
         else -> true
     }
 

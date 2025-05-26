@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.example.movies_app.presentation.ui.navgation.NavEntry
 import com.example.movies_app.presentation.ui.navgation.Navigation
+import com.example.movies_app.realtime_database.RealTimeUser
 import com.example.movies_app.ui.theme.Movies_appTheme
 
 class MainActivity : ComponentActivity() {
@@ -22,7 +23,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Movies_appTheme {
+
                 NavEntry()
+
             }
         }
     }

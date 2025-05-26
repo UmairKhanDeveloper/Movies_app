@@ -16,31 +16,40 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -49,24 +58,71 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.movies_app.R
 import com.example.movies_app.presentation.ui.navgation.Screen
+import com.example.movies_app.firebase.AuthRepositoryImpl
+import com.example.movies_app.firebase.AuthUser
+import com.example.movies_app.firebase.AuthViewModel
+import com.example.movies_app.firebase.ResultState
+import com.example.movies_app.realtime_database.RealTimeDbRepository
+import com.example.movies_app.realtime_database.RealTimeUser
+import com.example.movies_app.realtime_database.RealTimeViewModel
+import com.example.movies_app.presentation.ui.screen.splash.PreferencesHelper
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
+import com.google.rpc.context.AttributeContext.Auth
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun LoginScreen(navController: NavController) {
+    val context = LocalContext.current
+    val firebaseAuth = FirebaseAuth.getInstance()
+    val authRepo = AuthRepositoryImpl(firebaseAuth, context)
+    val authViewModel = AuthViewModel(authRepo)
+
+    val databaseReference = FirebaseDatabase.getInstance().reference.child("your_node")
+    val repository = remember { RealTimeDbRepository(databaseReference, context) }
+    val viewModel = remember { RealTimeViewModel(repository) }
+    val state = viewModel.res.value
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    var loginSuccess by remember { mutableStateOf(false) }
+
+
+    var showForgotPasswordDialog by remember { mutableStateOf(false) }
+    var forgotEmail by remember { mutableStateOf("") }
+    var forgotPasswordMessage by remember { mutableStateOf<String?>(null) }
+    var isSendingResetEmail by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        if (PreferencesHelper.isUserLoggedIn(context)) {
+            navController.navigate(Screen.HomeScreen.route) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
+
+    if (loginSuccess) {
+        LaunchedEffect(Unit) {
+            PreferencesHelper.setUserLoggedIn(context, true)
+            navController.navigate(Screen.HomeScreen.route) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
+
     Scaffold(topBar = {
         CenterAlignedTopAppBar(
             title = {
-                Text(
-                    text = "Login",
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White,
-                    fontSize = 16.sp
-                )
+                Text("Login", fontWeight = FontWeight.SemiBold, color = Color.White, fontSize = 16.sp)
             },
             navigationIcon = {
                 Box(
@@ -98,12 +154,15 @@ fun LoginScreen(navController: NavController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Hi, Tiffany",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
-            )
+            state.item.forEach {
+                Text(
+                    text = "Hi, ${it.items.userName}",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                )
+            }
+
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Welcome back! Please enter \nyour details.",
@@ -113,7 +172,6 @@ fun LoginScreen(navController: NavController) {
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(70.dp))
-
 
             StyledEmailTextField(email = email, onEmailChange = { email = it })
             Spacer(modifier = Modifier.height(20.dp))
@@ -127,7 +185,6 @@ fun LoginScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
@@ -137,29 +194,129 @@ fun LoginScreen(navController: NavController) {
                     color = Color(0xFF00D1FF),
                     fontSize = 12.sp,
                     modifier = Modifier.clickable {
-                        navController.navigate(Screen.ResetPassword.route)
+                        forgotEmail = email
+                        forgotPasswordMessage = null
+                        showForgotPasswordDialog = true
                     }
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            if (errorMessage.isNotEmpty()) {
+                Text(
+                    text = errorMessage,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
 
             Button(
                 onClick = {
+                    errorMessage = ""
+                    isLoading = true
 
+                    scope.launch {
+                        authViewModel.loginUser(AuthUser(email = email, password = password, ""))
+                            .collectLatest { result ->
+                                when (result) {
+                                    is ResultState.Loading -> isLoading = true
+                                    is ResultState.Error -> {
+                                        errorMessage = "Login failed: ${result.error.message}"
+                                        isLoading = false
+                                    }
+                                    is ResultState.Success -> {
+                                        PreferencesHelper.setUserLoggedIn(context, true)
+                                        isLoading = false
+                                        loginSuccess = true
+                                    }
+                                }
+                            }
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00D1FF)),
                 shape = RoundedCornerShape(50),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                enabled = !isLoading
             ) {
-                Text(text = "Login", color = Color.White, fontSize = 16.sp)
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text("Login", color = Color.White, fontSize = 16.sp)
+                }
             }
+        }
+
+
+        if (showForgotPasswordDialog) {
+            AlertDialog(
+                onDismissRequest = { showForgotPasswordDialog = false },
+                title = { Text("Reset Password", color = Color.White) },
+                text = {
+                    Column {
+                        Text("Enter your email to receive password reset instructions.",color = Color.White)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TextField(
+                            value = forgotEmail,
+                            onValueChange = { forgotEmail = it },
+                            placeholder = { Text("Email Address") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        forgotPasswordMessage?.let {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = it,
+                                color = if (it.contains("sent")) Color.Green else Color.Red,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            if (forgotEmail.isBlank()) {
+                                forgotPasswordMessage = "Please enter your email."
+                                return@TextButton
+                            }
+                            isSendingResetEmail = true
+                            firebaseAuth.sendPasswordResetEmail(forgotEmail)
+                                .addOnCompleteListener { task ->
+                                    isSendingResetEmail = false
+                                    if (task.isSuccessful) {
+                                        forgotPasswordMessage = "Reset email sent! Please check your inbox."
+                                    } else {
+                                        forgotPasswordMessage = task.exception?.localizedMessage ?: "Failed to send reset email."
+                                    }
+                                }
+                        },
+                        enabled = !isSendingResetEmail
+                    ) {
+                        if (isSendingResetEmail) {
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                        } else {
+                            Text("Send")
+                        }
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showForgotPasswordDialog = false }) {
+                        Text("Cancel")
+                    }
+                },containerColor =Color(0XFF171725)
+            )
         }
     }
 }
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

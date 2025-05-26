@@ -1,6 +1,7 @@
 package com.example.movies_app.presentation.ui.screen.login_signup.Sign_Up
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,8 +17,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -26,6 +29,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,11 +43,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -54,23 +61,52 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.movies_app.R
+import com.example.movies_app.presentation.ui.navgation.Screen
+import com.example.movies_app.firebase.AuthRepositoryImpl
+import com.example.movies_app.firebase.AuthUser
+import com.example.movies_app.firebase.AuthViewModel
+import com.example.movies_app.firebase.ResultState
+import com.example.movies_app.realtime_database.RealTimeDbRepository
+import com.example.movies_app.realtime_database.RealTimeUser
+import com.example.movies_app.realtime_database.RealTimeViewModel
+import com.example.movies_app.presentation.ui.screen.splash.PreferencesHelper
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
+import com.google.rpc.context.AttributeContext.Auth
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SignUpScreen(navController: NavController) {
-    var username by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val firebaseAuth = FirebaseAuth.getInstance()
+    val authRepo = AuthRepositoryImpl(firebaseAuth, context)
+    val authViewModel = AuthViewModel(authRepo)
+
+    val databaseReference = FirebaseDatabase.getInstance().reference.child("your_node")
+    val dbRepository = remember { RealTimeDbRepository(databaseReference, context) }
+    val dbViewModel = remember { RealTimeViewModel(dbRepository) }
+
+    var username by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    var checked by rememberSaveable { mutableStateOf(false) }
+    var isLoading by rememberSaveable { mutableStateOf(false) }
+    var errorMessage by rememberSaveable { mutableStateOf("") }
+
+    val scope = rememberCoroutineScope()
 
     Scaffold(topBar = {
         CenterAlignedTopAppBar(
             title = {
                 Text(
-                    text = "Login",
+                    text = "Sign Up",
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White,
                     fontSize = 16.sp
@@ -96,75 +132,159 @@ fun SignUpScreen(navController: NavController) {
             },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1F1D2B))
         )
-    }) {
+    }) { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(top = it.calculateTopPadding())
+                .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize()
                 .background(Color(0xFF1F1D2B))
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(24.dp))
+
             Text(
-                text = "Let’s get started",
+                "Let’s get started",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "The latest movies and series are here",
+                "The latest movies and series are here",
                 fontSize = 12.sp,
-                color = Color(0xFFEBEBEF),
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center
+                color = Color(0xFFEBEBEF)
             )
-            Spacer(modifier = Modifier.height(70.dp))
+
+            Spacer(modifier = Modifier.height(48.dp))
+
             StyledNameTextField2(username = username, onNameChange = { username = it })
             Spacer(modifier = Modifier.height(20.dp))
             StyledEmailTextField2(email = email, onEmailChange = { email = it })
             Spacer(modifier = Modifier.height(20.dp))
-
             StyledPasswordTextField2(
                 password = password,
                 onPasswordChange = { password = it },
                 passwordVisible = passwordVisible,
                 onVisibilityChange = { passwordVisible = !passwordVisible }
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-
-            var checked by remember { mutableStateOf(false) }
+            Spacer(modifier = Modifier.height(12.dp))
 
             TermsAndPrivacyCheckbox(
                 checked = checked,
                 onCheckedChange = { checked = it },
-                onTermsClick = { },
-                onPrivacyClick = { }
+                onTermsClick = {  },
+                onPrivacyClick = {  }
             )
-
-
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            if (errorMessage.isNotEmpty()) {
+                Text(errorMessage, color = Color.Red, fontSize = 12.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
             Button(
                 onClick = {
+                    if (!checked) {
+                        errorMessage = "You must agree to Terms and Privacy Policy"
+                        return@Button
+                    }
 
+                    isLoading = true
+                    errorMessage = ""
+
+                    scope.launch {
+                        authViewModel.createUser(AuthUser(email, password, ""))
+                            .collectLatest { result ->
+                                when (result) {
+                                    is ResultState.Error -> {
+                                        errorMessage = "Sign up failed: ${result.error.message}"
+                                        isLoading = false
+                                    }
+
+                                    ResultState.Loading -> Unit
+                                    is ResultState.Success -> {
+                                        val firebaseUser = FirebaseAuth.getInstance().currentUser
+                                        if (firebaseUser != null) {
+                                            dbViewModel.insert(
+                                                RealTimeUser.RealTimeItems(
+                                                    userName = username,
+                                                    email = email,
+                                                    password = password
+                                                )
+                                            ).collectLatest { dbResult ->
+                                                when (dbResult) {
+                                                    is ResultState.Error -> {
+                                                        errorMessage = "Error saving user data: ${dbResult.error.message}"
+                                                        isLoading = false
+                                                    }
+
+                                                    ResultState.Loading -> Unit
+                                                    is ResultState.Success -> {
+                                                        FirebaseAuth.getInstance().signOut()
+                                                        isLoading = false
+                                                        navController.navigate(Screen.LoginScreen.route) {
+                                                            popUpTo(Screen.HomeScreen.route) { inclusive = true }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                    }
                 },
+                enabled = !isLoading,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00D1FF)),
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
             ) {
-                Text(text = "Login", color = Color.White, fontSize = 16.sp)
+                Text(
+                    text = "Sign Up",
+                    color = Color.White,
+                    fontSize = 16.sp
+                )
+            }
+        }
+    }
+
+    if (isLoading) {
+        LoadingDialog()
+    }
+}
+
+@Composable
+fun LoadingDialog(message: String = "Creating account...") {
+    Dialog(onDismissRequest = {}) {
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color(0xFF2A2C36)),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                CircularProgressIndicator(
+                    color = Color(0xFF00D1FF),
+                    strokeWidth = 3.dp,
+                    modifier = Modifier.size(36.dp)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = message,
+                    fontSize = 14.sp,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -174,7 +294,7 @@ fun StyledPasswordTextField2(
     passwordVisible: Boolean,
     onVisibilityChange: () -> Unit
 ) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Password",
             color = Color.LightGray,
@@ -221,7 +341,7 @@ fun StyledEmailTextField2(
     email: String,
     onEmailChange: (String) -> Unit
 ) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Email Address",
             color = Color.LightGray,
@@ -259,7 +379,7 @@ fun StyledNameTextField2(
     username: String,
     onNameChange: (String) -> Unit
 ) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Username",
             color = Color.LightGray,
@@ -347,3 +467,6 @@ fun TermsAndPrivacyCheckbox(
         )
     }
 }
+
+
+
