@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -48,6 +49,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -56,12 +59,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.movies_app.R
 import com.example.movies_app.data.remote.api.MoviesApiItem
 import com.example.movies_app.data.reposotory.Repository
 import com.example.movies_app.domian.model.MainViewModel
 import com.example.movies_app.firebase.ResultState
+import com.example.movies_app.presentation.ui.navgation.Screen
 import com.example.movies_app.realtime_database.RealTimeDbRepository
 import com.example.movies_app.realtime_database.RealTimeViewModel
 import com.google.firebase.database.FirebaseDatabase
@@ -100,6 +105,9 @@ fun HomeScreen(navController: NavController) {
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel1.allMovies()
+    }
 
     Scaffold(topBar = {
         TopAppBar(title = {
@@ -113,7 +121,7 @@ fun HomeScreen(navController: NavController) {
                     )
                 }
                 Text(
-                    text = "Let’s stream your favorite movie",
+                    text = "Let’s stream your favorite movie ",
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0XFF92929D),
                     fontSize = 12.sp
@@ -441,21 +449,23 @@ fun MostPopularSection() {
 
         LazyRow {
             items(allWeatherData) { movie ->
-                MovieCard1(movie)
+                val navController= rememberNavController()
+                MovieCard1(movie, navController)
                 Spacer(modifier = Modifier.width(12.dp))
             }
         }
 
 
 
-
     }
 }
-
 @Composable
-fun MovieCard1(moviesApiItem: MoviesApiItem) {
+fun MovieCard1(moviesApiItem: MoviesApiItem,navController: NavController) {
     Box(
         modifier = Modifier
+            .clickable {
+                navController.navigate(Screen.DetailsScreen.route + "${moviesApiItem.id}")
+            }
             .width(140.dp)
             .height(250.dp)
             .clip(RoundedCornerShape(12.dp))
@@ -521,5 +531,27 @@ fun MovieCard1(moviesApiItem: MoviesApiItem) {
     }
 }
 
-
+@Composable
+fun ShareIcon(
+    icon: Painter,
+    backgroundColor: Any,
+    iconTint: Color = Color.White
+) {
+    Box(
+        modifier = Modifier
+            .size(50.dp)
+            .background(
+                brush = if (backgroundColor is Brush) backgroundColor else SolidColor(backgroundColor as Color),
+                shape = CircleShape
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = icon,
+            contentDescription = null,
+            tint = iconTint,
+            modifier = Modifier.size(24.dp)
+        )
+    }
+}
 

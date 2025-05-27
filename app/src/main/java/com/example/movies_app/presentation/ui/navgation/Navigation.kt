@@ -20,13 +20,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import androidx.navigation.toRoute
 import com.example.movies_app.R
+import com.example.movies_app.presentation.ui.screen.details.DetailsScreen
 import com.example.movies_app.presentation.ui.screen.download.DownloadScreen
 import com.example.movies_app.presentation.ui.screen.home.HomeScreen
 import com.example.movies_app.presentation.ui.screen.login_signup.Login.LoginScreen
@@ -38,6 +38,8 @@ import com.example.movies_app.presentation.ui.screen.onboarding.Onboarding3
 import com.example.movies_app.presentation.ui.screen.profile.ProfileScreen
 import com.example.movies_app.presentation.ui.screen.search.SearchScreen
 import com.example.movies_app.presentation.ui.screen.splash.SplashScreen
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 @Composable
 fun Navigation(navController: NavHostController,) {
@@ -53,7 +55,25 @@ fun Navigation(navController: NavHostController,) {
         composable(Screen.SearchScreen.route){ SearchScreen(navController) }
         composable(Screen.DownloadScreen.route){ DownloadScreen(navController) }
         composable(Screen.ProfileScreen.route){ ProfileScreen(navController) }
+        composable<MoviesApiItem> {
+            val moviesApiItem: MoviesApiItem = it.toRoute()
+            DetailsScreen(
+                navController,
+                moviesApiItem.image,
+                moviesApiItem.title,
+                moviesApiItem.rank,
+                moviesApiItem.year,
+                moviesApiItem.imdbid,
+                moviesApiItem.description,
+                moviesApiItem.genre,
+                moviesApiItem.id,
+                moviesApiItem.rating,
+                moviesApiItem.thumbnail
 
+
+
+            )
+        }
 
 
 
@@ -63,6 +83,34 @@ fun Navigation(navController: NavHostController,) {
 
 }
 
+
+@Serializable
+data class MoviesApiItem(
+    @SerialName("big_image")
+    val bigImage: String,
+    @SerialName("description")
+    val description: String,
+    @SerialName("genre")
+    val genre: List<String>,
+    @SerialName("id")
+    val id: String,
+    @SerialName("image")
+    val image: String,
+    @SerialName("imdb_link")
+    val imdbLink: String,
+    @SerialName("imdbid")
+    val imdbid: String,
+    @SerialName("rank")
+    val rank: Int,
+    @SerialName("rating")
+    val rating: String,
+    @SerialName("thumbnail")
+    val thumbnail: String,
+    @SerialName("title")
+    val title: String,
+    @SerialName("year")
+    val year: Int
+)
 sealed class Screen(val route: String, val title: String, @DrawableRes val icon: Int) {
     object SplashScreen : Screen("SplashScreen", "SplashScreen", R.drawable.ic_home)
     object Onboarding1 : Screen("Onboarding1", "Onboarding1", R.drawable.ic_splash)
@@ -75,6 +123,7 @@ sealed class Screen(val route: String, val title: String, @DrawableRes val icon:
     object SearchScreen : Screen("SearchScreen", "Search", R.drawable.ic_search)
     object DownloadScreen : Screen("DownloadScreen", "Download", R.drawable.ic_download)
     object ProfileScreen : Screen("ProfileScreen", "Profile", R.drawable.account)
+    object DetailsScreen : Screen("DetailsScreen", "DetailsScreen", R.drawable.account)
 }
 
 
@@ -84,7 +133,6 @@ fun BottomNavigationBar(navController: NavHostController) {
         Screen.HomeScreen,
         Screen.SearchScreen,
         Screen.DownloadScreen,
-        Screen.ProfileScreen
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -165,6 +213,8 @@ fun NavEntry() {
         currentRoute.contains(Screen.Login_Signup.route) -> false
         currentRoute.contains(Screen.LoginScreen.route) -> false
         currentRoute.contains(Screen.SignUpScreen.route) -> false
+        currentRoute.contains(Screen.SignUpScreen.route) -> false
+        currentRoute.contains(Screen.DetailsScreen.route) -> false
         else -> true
     }
 

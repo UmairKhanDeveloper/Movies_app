@@ -1,6 +1,8 @@
 package com.example.movies_app.data.remote.apiclient.moviesClient
 
 import com.example.movies_app.data.remote.api.MoviesApiItem
+import com.example.movies_app.data.remote.apiclient.MovieDetails.moviesDetails
+import com.example.movies_app.data.remote.apiclient.getGenres.genresResponse
 import com.example.movies_app.data.remote.constant.Constant
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -60,5 +62,29 @@ object ApiClientMovies {
 
         return response.body()
     }
+
+    suspend fun getGenres(): genresResponse {
+        val url = "https://advanced-movie-search.p.rapidapi.com/genre/movie/list"
+
+        return client.get(url) {
+            headers {
+                append("x-rapidapi-host", Constant.RAPID_API_HOST)
+                append("x-rapidapi-key", Constant.RAPID_API_KEY)
+            }
+        }.body()
+    }
+
+    suspend fun getMovieDetails(movieId: Int): moviesDetails {
+        val url = "https://advanced-movie-search.p.rapidapi.com/movies/getdetails?movie_id=$movieId"
+
+        return client.get(url) {
+            headers {
+                append("x-rapidapi-host", Constant.RAPID_API_HOST)
+                append("x-rapidapi-key", Constant.RAPID_API_KEY)
+            }
+        }.body()
+    }
+
+
 
 }
