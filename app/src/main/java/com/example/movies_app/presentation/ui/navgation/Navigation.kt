@@ -26,7 +26,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.movies_app.R
-import com.example.movies_app.presentation.ui.screen.details.DetailsScreen
+import com.example.movies_app.presentation.ui.screen.VideoPlayerScreen
+import com.example.movies_app.presentation.ui.screen.details.Details
 import com.example.movies_app.presentation.ui.screen.download.DownloadScreen
 import com.example.movies_app.presentation.ui.screen.home.HomeScreen
 import com.example.movies_app.presentation.ui.screen.login_signup.Login.LoginScreen
@@ -38,7 +39,6 @@ import com.example.movies_app.presentation.ui.screen.onboarding.Onboarding3
 import com.example.movies_app.presentation.ui.screen.profile.ProfileScreen
 import com.example.movies_app.presentation.ui.screen.search.SearchScreen
 import com.example.movies_app.presentation.ui.screen.splash.SplashScreen
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Composable
@@ -52,12 +52,9 @@ fun Navigation(navController: NavHostController,) {
         composable(Screen.LoginScreen.route){ LoginScreen(navController) }
         composable(Screen.SignUpScreen.route){ SignUpScreen(navController) }
         composable(Screen.HomeScreen.route){ HomeScreen(navController) }
-        composable(Screen.SearchScreen.route){ SearchScreen(navController) }
-        composable(Screen.DownloadScreen.route){ DownloadScreen(navController) }
-        composable(Screen.ProfileScreen.route){ ProfileScreen(navController) }
-        composable<MoviesApiItem> {
-            val moviesApiItem: MoviesApiItem = it.toRoute()
-            DetailsScreen(
+        composable<MoviesApiItems> {
+            val moviesApiItem: MoviesApiItems = it.toRoute()
+            Details(
                 navController,
                 moviesApiItem.image,
                 moviesApiItem.title,
@@ -68,12 +65,21 @@ fun Navigation(navController: NavHostController,) {
                 moviesApiItem.genre,
                 moviesApiItem.id,
                 moviesApiItem.rating,
-                moviesApiItem.thumbnail
+                moviesApiItem.thumbnail,
+                moviesApiItem.imdbLink,
 
 
 
             )
         }
+        composable(Screen.SearchScreen.route){ SearchScreen(navController) }
+        composable(Screen.DownloadScreen.route){ DownloadScreen(navController) }
+        composable(Screen.ProfileScreen.route){ ProfileScreen(navController) }
+        composable("VideoPlayerScreen/{videoId}") { backStackEntry ->
+            val videoId = backStackEntry.arguments?.getString("videoId") ?: ""
+            VideoPlayerScreen(navController, videoId)
+        }
+
 
 
 
@@ -85,32 +91,23 @@ fun Navigation(navController: NavHostController,) {
 
 
 @Serializable
-data class MoviesApiItem(
-    @SerialName("big_image")
+data class MoviesApiItems(
     val bigImage: String,
-    @SerialName("description")
     val description: String,
-    @SerialName("genre")
     val genre: List<String>,
-    @SerialName("id")
     val id: String,
-    @SerialName("image")
     val image: String,
-    @SerialName("imdb_link")
     val imdbLink: String,
-    @SerialName("imdbid")
     val imdbid: String,
-    @SerialName("rank")
     val rank: Int,
-    @SerialName("rating")
     val rating: String,
-    @SerialName("thumbnail")
     val thumbnail: String,
-    @SerialName("title")
     val title: String,
-    @SerialName("year")
     val year: Int
+
 )
+
+
 sealed class Screen(val route: String, val title: String, @DrawableRes val icon: Int) {
     object SplashScreen : Screen("SplashScreen", "SplashScreen", R.drawable.ic_home)
     object Onboarding1 : Screen("Onboarding1", "Onboarding1", R.drawable.ic_splash)
@@ -123,7 +120,8 @@ sealed class Screen(val route: String, val title: String, @DrawableRes val icon:
     object SearchScreen : Screen("SearchScreen", "Search", R.drawable.ic_search)
     object DownloadScreen : Screen("DownloadScreen", "Download", R.drawable.ic_download)
     object ProfileScreen : Screen("ProfileScreen", "Profile", R.drawable.account)
-    object DetailsScreen : Screen("DetailsScreen", "DetailsScreen", R.drawable.account)
+    object Details : Screen("Details", "Details", R.drawable.account)
+    object VideoPlayerScreen : Screen("VideoPlayerScreen", "VideoPlayerScreen", R.drawable.account)
 }
 
 
@@ -179,10 +177,10 @@ fun BottomNavigationBar(navController: NavHostController) {
                             contentDescription = screen.title,
                             tint = iconColor,
 
-                        )
+                            )
                     }
                 },
-                label = {  },
+                label = { },
                 colors = NavigationBarItemDefaults.colors(
                     indicatorColor = Color(0xFF252836),
                     selectedIconColor = Color(0xFF00CFE8),
@@ -192,7 +190,6 @@ fun BottomNavigationBar(navController: NavHostController) {
         }
     }
 }
-
 
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -214,7 +211,8 @@ fun NavEntry() {
         currentRoute.contains(Screen.LoginScreen.route) -> false
         currentRoute.contains(Screen.SignUpScreen.route) -> false
         currentRoute.contains(Screen.SignUpScreen.route) -> false
-        currentRoute.contains(Screen.DetailsScreen.route) -> false
+        currentRoute.contains(Screen.Details.route) -> false
+        currentRoute.contains(Screen.VideoPlayerScreen.route) -> false
         else -> true
     }
 
@@ -225,6 +223,6 @@ fun NavEntry() {
             }
         }
     ) { innerPadding ->
-        Navigation(navController, )
+        Navigation(navController)
     }
 }

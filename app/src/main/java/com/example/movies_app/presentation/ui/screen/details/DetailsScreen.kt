@@ -1,6 +1,6 @@
 package com.example.movies_app.presentation.ui.screen.details
 
-import androidx.compose.foundation.Image
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,16 +42,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.movies_app.R
-import com.example.movies_app.presentation.ui.navgation.Screen
 import com.example.movies_app.presentation.ui.screen.home.ShareIcon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetailsScreen(
-    navController: NavController,
+fun Details(
+    navController: NavHostController,
     image: String,
     title: String,
     rank: Int,
@@ -61,10 +60,10 @@ fun DetailsScreen(
     genre: List<String>,
     id: String,
     rating: String,
-    thumbnail: String
+    thumbnail: String,
+    imdbLink: String
 ) {
     var showDialog by remember { mutableStateOf(false) }
-
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
@@ -150,31 +149,40 @@ fun DetailsScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_arrow_back),
-                    contentDescription = "Back",
-                    tint = Color.White,
+                Box(
                     modifier = Modifier
-                        .size(24.dp)
+                        .padding(end = 10.dp)
                         .clickable { navController.popBackStack() }
-                )
-                Text(
-                    text = title,
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_heart),
-                    contentDescription = "Favorite",
-                    tint = Color.Red,
+                        .padding(start = 10.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .size(32.dp)
+                        .background(Color(0xFF252836)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.arrow_back),
+                        contentDescription = "Back",
+                        tint = Color.Red,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                Box(
                     modifier = Modifier
-                        .size(24.dp)
-                        .background(Color(0xFF252836), shape = RoundedCornerShape(10.dp))
-                        .padding(4.dp)
-                )
+                        .padding(end = 10.dp)
+                        .clickable { navController.popBackStack() }
+                        .padding(start = 10.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .size(32.dp)
+                        .background(Color(0xFF252836)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_heart),
+                        contentDescription = "Back",
+                        tint = Color.Red,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -228,7 +236,10 @@ fun DetailsScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Button(
-                        onClick = { },
+                        onClick = {
+                            navController.navigate("VideoPlayerScreen/$imdbid")
+
+                        },
                         colors = ButtonDefaults.buttonColors(Color(0xFFFF8700)),
                         modifier = Modifier
                             .weight(1f)
@@ -239,6 +250,8 @@ fun DetailsScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(text = "Play", color = Color.White)
                     }
+
+
 
                     Spacer(modifier = Modifier.width(12.dp))
 
@@ -329,3 +342,5 @@ fun IconButtonBox(icon: Int,    onClick: () -> Unit) {
         )
     }
 }
+
+

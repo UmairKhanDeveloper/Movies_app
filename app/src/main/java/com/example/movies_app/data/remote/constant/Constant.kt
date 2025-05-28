@@ -5,5 +5,6 @@ object Constant {
 
     const val IMDB_BASE_URL = "https://imdb-top-100-movies.p.rapidapi.com/"
     const val RAPID_API_HOST = "imdb-top-100-movies.p.rapidapi.com"
-    const val RAPID_API_KEY = "f73be68983msh89be360f1658e3ep18e6d4jsn11bc455ce877"
+    const val RAPID_API_KEY = " 93b4b368f7msh0940a40963eeee2p1918f9jsn645ddde56af3"
+
 }

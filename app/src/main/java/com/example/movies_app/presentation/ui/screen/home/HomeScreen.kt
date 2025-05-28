@@ -1,6 +1,7 @@
 package com.example.movies_app.presentation.ui.screen.home
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -66,6 +67,7 @@ import com.example.movies_app.data.remote.api.MoviesApiItem
 import com.example.movies_app.data.reposotory.Repository
 import com.example.movies_app.domian.model.MainViewModel
 import com.example.movies_app.firebase.ResultState
+import com.example.movies_app.presentation.ui.navgation.MoviesApiItems
 import com.example.movies_app.presentation.ui.navgation.Screen
 import com.example.movies_app.realtime_database.RealTimeDbRepository
 import com.example.movies_app.realtime_database.RealTimeViewModel
@@ -230,7 +232,7 @@ fun HomeScreen(navController: NavController) {
 
             CategoryScreen()
 
-            MostPopularSection()
+            MostPopularSection(navController)
 
         }
 
@@ -401,7 +403,7 @@ fun CategoryScreen() {
 }
 
 @Composable
-fun MostPopularSection() {
+fun MostPopularSection(navController: NavController) {
     val repository1 = remember { Repository() }
     val viewModel1 = remember { MainViewModel(repository1) }
     val state1 by viewModel1.allMovies.collectAsState()
@@ -449,22 +451,36 @@ fun MostPopularSection() {
 
         LazyRow {
             items(allWeatherData) { movie ->
-                val navController= rememberNavController()
                 MovieCard1(movie, navController)
                 Spacer(modifier = Modifier.width(12.dp))
             }
         }
 
 
-
     }
 }
+
 @Composable
-fun MovieCard1(moviesApiItem: MoviesApiItem,navController: NavController) {
+fun MovieCard1(moviesApiItem: MoviesApiItem, navController: NavController) {
     Box(
         modifier = Modifier
             .clickable {
-                navController.navigate(Screen.DetailsScreen.route + "${moviesApiItem.id}")
+                navController.navigate(
+                    MoviesApiItems(
+                        moviesApiItem.bigImage,
+                        moviesApiItem.description,
+                        moviesApiItem.genre,
+                        moviesApiItem.id,
+                        moviesApiItem.image,
+                        moviesApiItem.imdbLink,
+                        moviesApiItem.imdbid,
+                        moviesApiItem.rank,
+                        moviesApiItem.rating,
+                        moviesApiItem.thumbnail,
+                        moviesApiItem.title,
+                        moviesApiItem.year,
+                    )
+                )
             }
             .width(140.dp)
             .height(250.dp)
@@ -520,7 +536,7 @@ fun MovieCard1(moviesApiItem: MoviesApiItem,navController: NavController) {
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = moviesApiItem.genre.toString(),
+                    text = moviesApiItem.genre.joinToString(", "),
                     color = Color.LightGray,
                     fontSize = 12.sp,
                     maxLines = 1,
@@ -530,6 +546,7 @@ fun MovieCard1(moviesApiItem: MoviesApiItem,navController: NavController) {
         }
     }
 }
+
 
 @Composable
 fun ShareIcon(
@@ -541,7 +558,9 @@ fun ShareIcon(
         modifier = Modifier
             .size(50.dp)
             .background(
-                brush = if (backgroundColor is Brush) backgroundColor else SolidColor(backgroundColor as Color),
+                brush = if (backgroundColor is Brush) backgroundColor else SolidColor(
+                    backgroundColor as Color
+                ),
                 shape = CircleShape
             ),
         contentAlignment = Alignment.Center
